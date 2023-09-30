@@ -7,13 +7,18 @@ const schema = Joi.object({
   phone: Joi.string().required(),
 });
 
+const favoriteSchema = Joi.object({
+  favorite: Joi.bool().required(),
+});
+
 const {
   listContacts,
   getContactById,
   addContact,
   removeContact,
   updateContact,
-} = require("../../models/contacts");
+  updateStatusContact,
+} = require("../../service/index");
 
 const router = express.Router();
 
@@ -83,6 +88,24 @@ router.put("/:contactId", async (req, res, next) => {
   } else {
     try {
       const contact = await updateContact(req.params.contactId, req.body);
+      if (contact) {
+        res.status(200).send({ contact });
+      } else {
+        res.status(404).send({ message: "Not found" });
+      }
+    } catch (e) {
+      res.status(500).send({ error: e });
+    }
+  }
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  const validationResult = favoriteSchema.validate(req.body);
+  if (validationResult.error) {
+    res.status(400).json({ message: "missing field favorite" });
+  } else {
+    try {
+      const contact = await updateStatusContact(req.params.contactId, req.body);
       if (contact) {
         res.status(200).send({ contact });
       } else {
