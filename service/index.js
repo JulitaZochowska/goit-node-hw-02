@@ -1,8 +1,11 @@
 const Contact = require("./schemas/contact");
 
-const listContacts = async () => {
+const listContacts = async (page, limit) => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find()
+      .skip(limit * page)
+      .limit(limit);
+
     return contacts;
   } catch (e) {
     console.error(e);
