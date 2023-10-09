@@ -1,5 +1,6 @@
 const express = require("express");
 const Joi = require("joi");
+const { authMiddleware } = require("../../auth/auth.middleware");
 
 const schema = Joi.object({
   name: Joi.string().required(),
@@ -22,16 +23,19 @@ const {
 
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
+router.get("/", authMiddleware, async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    // Pobranie atrybutów query, czyli ?page=1&limit=20 z URI
+    // do paginacji w zadaniu dodatkowym
+    const { page, limit } = req.query;
+    const contacts = await listContacts(page, limit);
     res.status(200).send({ contacts });
   } catch (e) {
     res.status(500).send({ error: e });
   }
 });
 
-router.get("/:contactId", async (req, res, next) => {
+router.get("/:contactId", authMiddleware, async (req, res, next) => {
   // Params to są te po ukośniku w URI, np. http://adres:port/nazwa/funkcji/12345 - gdzie 12345 to contactId
   const { contactId } = req.params;
   try {
@@ -46,7 +50,7 @@ router.get("/:contactId", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", authMiddleware, async (req, res, next) => {
   // Bez Joi musielibyśmy walidować w ten, a być może nawet bardziej skomplikowany sposób
   // if (!req.body.name || !req.body.email || !req.body.field) {
   //   res.status(400).json({ message: "missing required name - field" });
@@ -68,7 +72,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.delete("/:contactId", async (req, res, next) => {
+router.delete("/:contactId", authMiddleware, async (req, res, next) => {
   try {
     const isContactRemoved = await removeContact(req.params.contactId);
     if (isContactRemoved) {
@@ -81,7 +85,7 @@ router.delete("/:contactId", async (req, res, next) => {
   }
 });
 
-router.put("/:contactId", async (req, res, next) => {
+router.put("/:contactId", authMiddleware, async (req, res, next) => {
   const validationResult = schema.validate(req.body);
   if (validationResult.error) {
     res.status(400).json({ message: "missing fields" });
@@ -99,7 +103,7 @@ router.put("/:contactId", async (req, res, next) => {
   }
 });
 
-router.patch("/:contactId/favorite", async (req, res, next) => {
+router.patch("/:contactId/favorite", authMiddleware, async (req, res, next) => {
   const validationResult = favoriteSchema.validate(req.body);
   if (validationResult.error) {
     res.status(400).json({ message: "missing field favorite" });
