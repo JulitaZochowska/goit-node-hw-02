@@ -1,5 +1,10 @@
 const userDao = require("./user.dao");
 const authService = require("../auth/auth.service");
+const jimp = require("jimp");
+const mimetypes = require("mime-types");
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
+const fs = require("fs/promises");
 
 const signupHandler = async (req, res, next) => {
   try {
@@ -72,9 +77,41 @@ const currentHandler = async (req, res, next) => {
   }
 };
 
+const avatarsHandler = async (req, res, next) => {
+  try {
+    const { email } = req.user;
+    // Tworzymy docelową nazwę pliku jako email_data.rozszerzenie (np. jpg)
+    const filename = `${email}_${Date.now()}.${mimetypes.extension(
+      req.file.mimetype
+    )}`;
+
+    // Pobieramy uchwyt do awatara z folderu tmp
+    const avatarImage = await jimp.read(req.file.path);
+
+    // Zmniejszamy avatar do 250x250 i zapisujemy
+    await avatarImage.resize(250, 250).writeAsync(req.file.path);
+
+    // Przenosimy avatar z folderu tmp do folderu public/avatars
+    await fs.rename(
+      req.file.path,
+      path.join(appDir, "public/avatars", filename)
+    );
+
+    // Aktualizujemy wpis w bazie i zwracamy zaktualizowanego usera
+    const updatedUser = await userDao.updateUser(email, {
+      avatarURL: `http://localhost:3000/avatars/${filename}`,
+    });
+
+    return res.status(200).send({ avatarURL: updatedUser.avatarURL });
+  } catch (e) {
+    return next(e);
+  }
+};
+
 module.exports = {
   signupHandler,
   loginHandler,
   logoutHandler,
   currentHandler,
+  avatarsHandler,
 };

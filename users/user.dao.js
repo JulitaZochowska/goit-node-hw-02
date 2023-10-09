@@ -38,7 +38,10 @@ const getUser = async (email) => {
 
 const updateUser = async (email, userData) => {
   try {
-    return await User.findOneAndUpdate({ email }, userData);
+    return await User.findOneAndUpdate({ email }, userData, {
+      // Aby zwrócić usera PO aktualizacji, należy użyć flagi "new"
+      new: true,
+    });
   } catch (e) {
     console.error(e);
     throw new UnknownDatabaseError();
@@ -47,7 +50,10 @@ const updateUser = async (email, userData) => {
 
 const updateUserById = async (_id, userData) => {
   try {
-    return await User.findOneAndUpdate({ _id }, userData);
+    return await User.findOneAndUpdate({ _id }, userData, {
+      // Aby zwrócić usera PO aktualizacji, należy użyć flagi "new"
+      new: true,
+    });
   } catch (e) {
     console.error(e);
     throw new UnknownDatabaseError();
