@@ -13,12 +13,10 @@ const testUser = {
 
 jest.mock("./user.dao", () => ({
   createUser: jest.fn().mockResolvedValue(testUser),
-  getUser: jest
-    .fn()
-    .mockResolvedValue({
-      ...testUser,
-      validatePassword: jest.fn().mockResolvedValue(true),
-    }),
+  getUser: jest.fn().mockResolvedValue({
+    ...testUser,
+    validatePassword: jest.fn().mockResolvedValue(true),
+  }),
   updateUser: jest.fn().mockResolvedValue(testUser),
 }));
 
@@ -34,15 +32,19 @@ describe("signupHandler test", () => {
   it("should return user on signup", async () => {
     const res = httpMocks.createResponse();
 
-    await signupHandler(
-      {
-        body: {
-          email: "test@email.com",
-          password: "test password",
+    try {
+      await signupHandler(
+        {
+          body: {
+            email: "test@email.com",
+            password: "test password",
+          },
         },
-      },
-      res
-    );
+        res
+      );
+    } catch (e) {
+      throw new Error(e);
+    }
 
     expect(createUser).toHaveBeenCalledWith({
       email: "test@email.com",
@@ -61,15 +63,19 @@ describe("signupHandler test", () => {
   it("should update token and return user on login", async () => {
     const res = httpMocks.createResponse();
 
-    await loginHandler(
-      {
-        body: {
-          email: "test@email.com",
-          password: "test password",
+    try {
+      await loginHandler(
+        {
+          body: {
+            email: "test@email.com",
+            password: "test password",
+          },
         },
-      },
-      res
-    );
+        res
+      );
+    } catch (e) {
+      throw new Error(e);
+    }
 
     expect(getUser).toHaveBeenCalledWith("test@email.com");
     expect(generateAccessToken).toHaveBeenCalledWith({
