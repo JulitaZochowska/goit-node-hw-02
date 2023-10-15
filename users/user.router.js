@@ -1,6 +1,9 @@
 const express = require("express");
 const usersController = require("./user.controller");
-const { userValidatorMiddleware } = require("./user.validators");
+const {
+  userValidatorMiddleware,
+  emailInBodyValidatorMiddleware,
+} = require("./user.validators");
 const { authMiddleware } = require("../auth/auth.middleware");
 const multer = require("multer");
 const path = require("path");
@@ -33,6 +36,12 @@ usersRouter.patch(
   authMiddleware,
   uploadAvatarMiddleware,
   usersController.avatarsHandler
+);
+usersRouter.get("/verify/:verificationToken", usersController.verifyHandler);
+usersRouter.post(
+  "/verify",
+  emailInBodyValidatorMiddleware,
+  usersController.resendVerificationHandler
 );
 
 module.exports = usersRouter;
